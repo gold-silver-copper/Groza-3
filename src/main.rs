@@ -1,6 +1,8 @@
 use bevy::prelude::*;
 use bevy_egui::{egui, EguiContexts, EguiPlugin};
-use anchor_client::{solana_client::rpc_client::RpcClient, solana_sdk::{ pubkey::Pubkey,commitment_config::*, signature::*, }, *};
+use anchor_client::{solana_client::rpc_client::RpcClient, solana_sdk::{    system_instruction,
+    system_program,
+    transaction::Transaction, pubkey::Pubkey,commitment_config::*, signature::*, }, *};
 use std::{str::FromStr, time::Duration};
 
 fn main() {
@@ -26,19 +28,39 @@ pub fn setup(mut commands: Commands) {
 pub fn setup2(mut commands: Commands, mut local_input: ResMut<LocalInput>,  player_details: Res<PlayerDetails>) {
 
     let player_pubkey = player_details.player_keypair.encodable_pubkey();
+    let payer = &player_details.player_keypair;
 
     let client_ref = &player_details.player_rpcclient;
     
 
   
 
-   let rpc_response2 = client_ref.request_airdrop(&player_pubkey,1000000000000000);
-   let rpc_response = client_ref.get_account(&player_pubkey);
-   let space = 100;
 
 
+   let space:u64 = 100;
+   let rent = client_ref.get_minimum_balance_for_rent_exemption(space as usize).unwrap();
+   let instr = system_instruction::create_account(
+    &payer.pubkey(),
+    &payer.pubkey(),
+    rent,
+    space,
+    &system_program::ID,
+);
 
-   let rent = client_ref.get_minimum_balance_for_rent_exemption(space);
+let blockhash = client_ref.get_latest_blockhash().unwrap();
+
+let tx = Transaction::new_signed_with_payer(
+    &[instr],
+    Some(&payer.pubkey()),
+    &[&payer, &payer],
+    blockhash,
+);
+
+let _sig = client_ref.send_and_confirm_transaction(&tx);
+
+
+let rpc_response2 = client_ref.request_airdrop(&player_pubkey,1000000000000000);
+let rpc_response = client_ref.get_account(&player_pubkey);
 
    match rpc_response2 {
 
