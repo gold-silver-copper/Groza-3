@@ -3,7 +3,7 @@ use bevy_egui::{egui, EguiContexts, EguiPlugin};
 use anchor_client::{solana_client::rpc_client::RpcClient, solana_sdk::{    system_instruction,
     system_program,
     transaction::Transaction, pubkey::Pubkey,commitment_config::*, signature::*, }, *};
-use std::{str::FromStr, time::Duration};
+use std::{str::FromStr,thread, time::Duration};
 
 fn main() {
     App::new()
@@ -28,7 +28,10 @@ pub fn setup(mut commands: Commands) {
 pub fn setup2(mut commands: Commands, mut local_input: ResMut<LocalInput>,  player_details: Res<PlayerDetails>) {
 
     let player_pubkey = player_details.player_keypair.encodable_pubkey();
+    println!("pubkey isssss     {}",player_pubkey.to_string());
     let payer = &player_details.player_keypair;
+
+    let random_pubkey = Pubkey::from_str("G9qpASRsg9xrMjAEoECdAyGj5RB1vrQ3pfWSVk8sBuv8").unwrap();
 
     let client_ref = &player_details.player_rpcclient;
     
@@ -59,7 +62,9 @@ let tx = Transaction::new_signed_with_payer(
 let _sig = client_ref.send_and_confirm_transaction(&tx);
 
 
-let rpc_response2 = client_ref.request_airdrop(&player_pubkey,1000000000000000);
+let rpc_response2 = client_ref.request_airdrop(&player_pubkey,10000000000);
+let ten_millis = Duration::from_millis(1000);
+thread::sleep(ten_millis);
 let rpc_response = client_ref.get_account(&player_pubkey);
 
    match rpc_response2 {
@@ -155,9 +160,9 @@ struct PlayerDetails {
 impl Default for PlayerDetails {
     fn default() -> Self {
 
-        let url = "http://localhost:8899".to_string();
+        let url = "http://127.0.0.1:8899".to_string();
 let timeout = Duration::from_secs(1);
-let commitment_config = CommitmentConfig::finalized();
+let commitment_config = CommitmentConfig::processed();
 
 
         
