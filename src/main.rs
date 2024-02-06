@@ -73,7 +73,7 @@ pub fn setup2(
     }
 
 
-    let tx = system_transaction::transfer(&player_details.player_keypair, &random_pubkey, 1000000000, blockhash);
+    let tx = system_transaction::transfer(&player_details.player_keypair, &random_pubkey, 1111000000, blockhash);
     let signature = client_ref.send_and_confirm_transaction(&tx);
 
 
